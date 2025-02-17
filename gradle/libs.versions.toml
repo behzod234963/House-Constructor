@@ -7,7 +7,16 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
-composeBom = "2024.04.01"
+composeBom = "2025.02.00"
+
+daggerHilt = "2.55"
+daggerHiltNavigationCompose = "1.2.0"
+lifecycle = "2.8.7"
+coroutine = "1.9.0"
+room = "2.6.1"
+navigationCompose = "2.8.7"
+datastoreCoreAndroid = "1.1.2"
+lottieAnimations = "6.6.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -25,7 +34,30 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+daggerHilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "daggerHilt" }
+daggerHiltKaptCompiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "daggerHilt" }
+daggerHilt-navigation-compose = { group = "androidx.hilt" ,name  = "hilt-navigation-compose" , version.ref = "daggerHiltNavigationCompose"}
+
+viewModel = { group = "androidx.lifecycle" , name = "lifecycle-viewmodel-ktx" , version.ref = "lifecycle" }
+viewModelUtilities = { group = "androidx.lifecycle" , name = "lifecycle-viewmodel-compose" , version.ref = "lifecycle" }
+liveData = { group = "androidx.lifecycle" , name = "lifecycle-livedata-ktx" , version.ref = "lifecycle" }
+lifecycleUtilities = { group = "androidx.lifecycle" , name = "lifecycle-runtime-compose" , version.ref = "lifecycle" }
+viewModelSaveState = { group = "androidx.lifecycle" , name = "lifecycle-viewmodel-savedstate" , version.ref = "lifecycle" }
+
+coroutine = { group = "org.jetbrains.kotlinx" , name = "kotlinx-coroutines-android" , version.ref = "coroutine" }
+
+roomSQLite = { group = "androidx.room" , name = "room-runtime" , version.ref = "room" }
+roomWithCoroutines = { group = "androidx.room" , name = "room-ktx" , version.ref = "room" }
+kaptCompiler = { group = "androidx.room" , name = "room-compiler" , version.ref = "room" }
+
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+androidx-dataStore = { group = "androidx.datastore" , name  = "datastore-preferences" , version.ref = "datastoreCoreAndroid" }
+
+lottieAnimtations = { group = "com.airbnb.android" , name = "lottie-compose" , version.ref = "lottieAnimations" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
+daggerHiltProject = { id = "com.google.dagger.hilt.android", version.ref = "daggerHilt" }

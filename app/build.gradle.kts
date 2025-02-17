@@ -1,11 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
+    alias(libs.plugins.daggerHiltProject)
 }
 
 android {
     namespace = "com.mr.anonym.houseconstructor"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.mr.anonym.houseconstructor"
@@ -66,4 +68,33 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //    Navigation compose
+    implementation(libs.androidx.navigation.compose)
+
+    //    Dagger Hilt
+    implementation(libs.daggerHilt)
+    implementation(libs.daggerHilt.navigation.compose)
+    kapt(libs.daggerHiltKaptCompiler)
+
+    //    ViewModel and lifecycle dependency's
+    implementation(libs.viewModel)
+    implementation(libs.viewModelUtilities)
+    implementation(libs.liveData)
+    implementation(libs.lifecycleUtilities)
+    implementation(libs.viewModelSaveState)
+
+    //    Coroutine
+    implementation(libs.coroutine)
+
+    //    Room SQLite
+    implementation(libs.roomSQLite)
+    implementation(libs.roomWithCoroutines)
+    kapt(libs.kaptCompiler)
+
+    //    DataStore
+    implementation(libs.androidx.dataStore)
+
+    //    Lottie animations
+    implementation(libs.lottieAnimtations)
 }
