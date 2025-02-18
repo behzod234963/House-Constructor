@@ -1,7 +1,6 @@
 package com.mr.anonym.houseconstructor.ui.items
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,9 +34,13 @@ fun RoomItem(
     secondaryColor: Color,
     roomName: String,
     cement: Double,
+    cementWithBag:Int,
+    sand:Double,
+    crushedStone:Double,
     brick: Int,
     length: Double,
     width: Double,
+    height:Double,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -101,6 +104,11 @@ fun RoomItem(
                 color = secondaryColor,
                 fontSize = 22.sp
             )
+            Text(
+                text = "- высота = $height м",
+                color = secondaryColor,
+                fontSize = 22.sp
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,9 +153,24 @@ fun RoomItem(
                 fontSize = 20.sp
             )
             Text(
-                text = "- цемент = $cement кб/м",
+                text = "- цемент = $cement м³",
                 color = secondaryColor,
                 fontSize = 20.sp
+            )
+            Text(
+                text = "- $cementWithBag мешок цемента",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "- $sand м³ песок",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "- $crushedStone м³ щебень",
+                color = secondaryColor,
+                fontSize = 17.sp
             )
             Text(
                 text = "- кирпич = $brick шт",
@@ -156,6 +179,7 @@ fun RoomItem(
             )
         }
     }
+    Spacer(Modifier.height(10.dp))
 }
 
 @Preview
@@ -166,9 +190,13 @@ private fun PreviewRoomItem() {
         Color.Black,
         "Кухня",
         1.05,
-        1000,
-        10.0,
-        5.0,
+        cementWithBag = 50,
+        sand = 5.0,
+        crushedStone = 5.0,
+        brick = 1000,
+        length = 10.0,
+        width = 5.0,
+        height = 4.0,
         onEditClick = {},
         onDeleteClick = {})
 }

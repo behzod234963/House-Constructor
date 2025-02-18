@@ -25,7 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -50,7 +48,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.isDigitsOnly
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -61,6 +58,9 @@ import com.mr.anonym.houseconstructor.data.model.HouseEntity
 import com.mr.anonym.houseconstructor.data.model.RoomsEntity
 import com.mr.anonym.houseconstructor.helpers.AddHouseEvent
 import com.mr.anonym.houseconstructor.helpers.CalculateMaterials
+import com.mr.anonym.houseconstructor.helpers.roundTo
+import com.mr.anonym.houseconstructor.helpers.charChecker
+import com.mr.anonym.houseconstructor.helpers.stringChecker
 import com.mr.anonym.houseconstructor.navigation.NavArguments
 import com.mr.anonym.houseconstructor.ui.items.RoomItem
 import com.mr.anonym.houseconstructor.ui.theme.fontAmidoneGrotesk
@@ -91,8 +91,8 @@ fun AddHouseScreen(
     val isRoomProcess = remember { mutableStateOf(false) }
     val isConfirmed = remember { mutableStateOf(false) }
     val isCancel = remember { mutableStateOf(false) }
-    val isSaveHome = remember { mutableStateOf( false) }
-    val isUpdate = remember { mutableStateOf( false ) }
+    val isSaveHome = remember { mutableStateOf(false) }
+    val isUpdate = remember { mutableStateOf(false) }
 
     val houseName = viewModel.homeName
     val roomName = viewModel.roomName
@@ -101,7 +101,7 @@ fun AddHouseScreen(
     val height = viewModel.height
 
     val parentID = viewModel.parentID
-    val currentRoomID = remember { mutableIntStateOf( -1 ) }
+    val currentRoomID = remember { mutableIntStateOf(-1) }
 
     val cement = remember { mutableDoubleStateOf(0.0) }
     val cementWithBag = remember { mutableIntStateOf(0) }
@@ -109,7 +109,7 @@ fun AddHouseScreen(
     val crushedStone = remember { mutableDoubleStateOf(0.0) }
     val brick = remember { mutableIntStateOf(0) }
 
-    val totalRooms = remember { mutableIntStateOf( 0 ) }
+    val totalRooms = remember { mutableIntStateOf(0) }
     val totalCement = viewModel.totalCement
     val totalCementWithBag = viewModel.totalCementWithBag
     val totalSand = viewModel.totalSand
@@ -128,7 +128,13 @@ fun AddHouseScreen(
     val rooms = viewModel.rooms
 
     BackHandler {
-        isCancel.value = !isCancel.value
+        if (arguments.id == -1 && rooms.value.isNotEmpty()) {
+            viewModel.deleteRooms(rooms.value)
+            totalRooms.intValue = 0
+            navController.popBackStack()
+        } else {
+            navController.popBackStack()
+        }
     }
     Column(
         modifier = Modifier
@@ -147,7 +153,13 @@ fun AddHouseScreen(
             navigationIcon = {
                 IconButton(
                     onClick = {
-                        isCancel.value = true
+                        if (arguments.id == -1 && rooms.value.isNotEmpty()) {
+                            viewModel.deleteRooms(rooms.value)
+                            totalRooms.intValue = 0
+                            navController.popBackStack()
+                        } else {
+                            navController.popBackStack()
+                        }
                     }
                 ) {
                     Icon(
@@ -196,16 +208,13 @@ fun AddHouseScreen(
                         Text(
                             text = "* обязательное поле"
                         )
-                        isError.value = false
                     }
                 },
                 shape = RoundedCornerShape(7.dp),
                 value = houseName.value,
                 onValueChange = {
                     viewModel.onEvent(AddHouseEvent.ChangeHomeName(it))
-                    if (houseName.value.isEmpty() || houseName.value.isBlank()) {
-                        isError.value = true
-                    }
+                    isError.value = houseName.value.isEmpty() || houseName.value.isBlank()
                 },
                 placeholder = {
                     Text(
@@ -293,14 +302,15 @@ fun AddHouseScreen(
                     Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(bottom = 5.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 //                    Width
                         OutlinedTextField(
                             modifier = Modifier
                                 .fillMaxWidth(0.5f)
-                                .height(75.dp)
+                                .height(if (!isWidthError.value) 75.dp else 90.dp)
                                 .padding(end = 5.dp),
                             textStyle = TextStyle(
                                 color = secondaryColor,
@@ -335,12 +345,7 @@ fun AddHouseScreen(
                             value = width.value,
                             onValueChange = {
                                 viewModel.onEvent(AddHouseEvent.ChangeWidth(it))
-                                if (width.value.isEmpty()
-                                    && width.value.isBlank()
-                                    || !width.value.isDigitsOnly()
-                                ) {
-                                    isWidthError.value = true
-                                }
+                                isWidthError.value = !it.stringChecker()
                             },
                             placeholder = {
                                 Text(
@@ -352,7 +357,7 @@ fun AddHouseScreen(
                         OutlinedTextField(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(75.dp)
+                                .height(if (!isLengthError.value) 75.dp else 90.dp)
                                 .padding(start = 5.dp),
                             textStyle = TextStyle(
                                 color = secondaryColor,
@@ -387,12 +392,7 @@ fun AddHouseScreen(
                             value = length.value,
                             onValueChange = {
                                 viewModel.onEvent(AddHouseEvent.ChangeLength(it))
-                                if (length.value.isEmpty()
-                                    && length.value.isBlank()
-                                    || !length.value.isDigitsOnly()
-                                ) {
-                                    isLengthError.value = true
-                                }
+                                isLengthError.value = !it.stringChecker()
                             },
                             placeholder = {
                                 Text(
@@ -411,7 +411,7 @@ fun AddHouseScreen(
                         OutlinedTextField(
                             modifier = Modifier
                                 .fillMaxWidth(0.5f)
-                                .height(75.dp)
+                                .height(if (!isHeightError.value) 75.dp else 90.dp)
                                 .padding(end = 5.dp),
                             textStyle = TextStyle(
                                 color = secondaryColor,
@@ -446,12 +446,7 @@ fun AddHouseScreen(
                             value = height.value,
                             onValueChange = {
                                 viewModel.onEvent(AddHouseEvent.ChangeHeight(it))
-                                if (height.value.isEmpty()
-                                    && height.value.isBlank()
-                                    || !height.value.isDigitsOnly()
-                                ) {
-                                    isHeightError.value = true
-                                }
+                                isHeightError.value = !it.stringChecker()
                             },
                             placeholder = {
                                 Text(
@@ -468,10 +463,11 @@ fun AddHouseScreen(
                             IconButton(
                                 onClick = {
                                     if (
-                                        roomName.value.isNotEmpty()
-                                        && height.value.isNotEmpty()
-                                        && length.value.isNotEmpty()
-                                        && width.value.isNotEmpty()
+                                        !isError.value
+                                        && roomName.value.isNotEmpty()
+                                        && !isHeightError.value
+                                        && !isLengthError.value
+                                        && !isWidthError.value
                                     ) {
                                         isConfirmed.value = true
                                         val calculateMaterials = CalculateMaterials(
@@ -479,11 +475,18 @@ fun AddHouseScreen(
                                             height = height.value.toDouble(),
                                             length = length.value.toDouble(),
                                         )
-                                        cement.doubleValue = calculateMaterials.cement()
+                                        cement.doubleValue = calculateMaterials.cement().roundTo(2)
+                                        sand.doubleValue = calculateMaterials.sand().roundTo(2)
+                                        crushedStone.doubleValue =
+                                            calculateMaterials.crushedStone().roundTo(2)
                                         cementWithBag.intValue = calculateMaterials.cementWithBag()
-                                        sand.doubleValue = calculateMaterials.sand()
-                                        crushedStone.doubleValue = calculateMaterials.crushedStone()
                                         brick.intValue = calculateMaterials.brick()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Проверьте правильность запольнения полей",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                             ) {
@@ -499,15 +502,16 @@ fun AddHouseScreen(
                     }
                 }
             }
-            if (isConfirmed.value && roomName.value.isNotEmpty()) {
+            if (isConfirmed.value && roomName.value.isNotEmpty() && !isError.value) {
                 CoroutineScope(Dispatchers.IO).launch {
                     delay(3000)
                     isRoomProcess.value = false
                     isConfirmed.value = false
-                    if (!isUpdate.value){
+                    if (!isUpdate.value) {
                         if (arguments.id != -1) {
                             viewModel.insertRoom(
                                 RoomsEntity(
+                                    id = currentRoomID.intValue,
                                     parentID = arguments.parentID,
                                     roomName = roomName.value,
                                     width = width.value.toDouble(),
@@ -520,11 +524,13 @@ fun AddHouseScreen(
                                     crushedStone = crushedStone.doubleValue
                                 )
                             )
-                            totalRooms.intValue++
+                            viewModel.onEvent(AddHouseEvent.ChangeWidth(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeHeight(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeLength(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeRoomName(""))
                         } else {
                             viewModel.insertRoom(
                                 RoomsEntity(
-                                    id = currentRoomID.intValue,
                                     parentID = parentID,
                                     roomName = roomName.value,
                                     width = width.value.toDouble(),
@@ -537,8 +543,9 @@ fun AddHouseScreen(
                                     crushedStone = crushedStone.doubleValue
                                 )
                             )
+                            totalRooms.intValue++
                         }
-                    }else{
+                    } else {
                         viewModel.insertRoom(
                             RoomsEntity(
                                 id = currentRoomID.intValue,
@@ -567,16 +574,20 @@ fun AddHouseScreen(
                         secondaryColor = secondaryColor,
                         roomName = room.roomName,
                         cement = room.cement,
+                        cementWithBag = room.cementWithBag,
+                        sand = room.sand,
+                        crushedStone = room.crushedStone,
                         brick = room.brick,
                         length = room.length,
                         width = room.width,
+                        height = room.height,
                         onEditClick = {
                             viewModel.onEvent(AddHouseEvent.ChangeRoomName(room.roomName))
                             viewModel.onEvent(AddHouseEvent.ChangeWidth(room.width.toString()))
                             viewModel.onEvent(AddHouseEvent.ChangeHeight(room.height.toString()))
                             viewModel.onEvent(AddHouseEvent.ChangeLength(room.length.toString()))
                             isUpdate.value = true
-                            currentRoomID.intValue = room.id?:-1
+                            currentRoomID.intValue = room.id ?: -1
                             isRoomProcess.value = true
                         },
                         onDeleteClick = {
@@ -588,9 +599,6 @@ fun AddHouseScreen(
             }
         }
     }
-    if (!isError.value && rooms.value.isNotEmpty()){
-        isSaveHome.value = true
-    }
     if (isConfirmed.value) {
         Box {
             LottieAnimation(
@@ -600,88 +608,6 @@ fun AddHouseScreen(
                 composition = progressButton.value
             )
         }
-    }
-    if (isCancel.value) {
-        AlertDialog(
-            containerColor = secondaryColor,
-            title = {
-                Text(
-                    text = "Отменит изменения?",
-                    color = primaryColor,
-                    fontSize = 18.sp
-                )
-            },
-            onDismissRequest = { isCancel.value = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                        val currentDate = dateFormat.format(Calendar.getInstance().time)
-                        if (isSaveHome.value) {
-                            viewModel.calculateMaterials()
-                            if (arguments.id != -1) {
-                                viewModel.insertHome(
-                                    HouseEntity(
-                                        id = arguments.id,
-                                        parentID = arguments.parentID,
-                                        houseName = houseName.value,
-                                        date = currentDate,
-                                        totalRooms = totalRooms.intValue,
-                                        totalCement = totalCement.value,
-                                        totalCementWithBag = totalCementWithBag.value,
-                                        totalSand = totalSand.value,
-                                        totalCrushedStone = totalCrushedStone.value,
-                                        totalBrick = totalBrick.value
-                                    )
-                                )
-                            } else {
-                                viewModel.insertHome(
-                                    HouseEntity(
-                                        parentID = parentID,
-                                        houseName = houseName.value,
-                                        date = currentDate,
-                                        totalRooms = totalRooms.intValue,
-                                        totalCement = totalCement.value,
-                                        totalCementWithBag = totalCementWithBag.value,
-                                        totalSand = totalSand.value,
-                                        totalCrushedStone = totalCrushedStone.value,
-                                        totalBrick = totalBrick.value
-                                    )
-                                )
-                            }
-                            navController.popBackStack()
-                        }else{
-                            Toast.makeText(context, "Проверьте правильность запольнения полей!", Toast.LENGTH_SHORT).show()
-                            isCancel.value = false
-                        }
-                    }
-                ) {
-                    Text(
-                        text = "Сохранить и выйти",
-                        color = Color.Green,
-                        fontSize = 16.sp
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        if (parentID != -1 && rooms.value.isNotEmpty()){
-                            viewModel.deleteRooms(rooms.value)
-                            navController.popBackStack()
-                        }else{
-                            navController.popBackStack()
-                        }
-                    }
-                ) {
-                    Text(
-                        text = "Выйти",
-                        color = Color.Red,
-                        fontSize = 16.sp
-                    )
-                }
-            }
-        )
     }
     Box(
         modifier = Modifier
@@ -699,38 +625,36 @@ fun AddHouseScreen(
                 onClick = {
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
                     val currentDate = dateFormat.format(Calendar.getInstance().time)
-                    if (isSaveHome.value) {
-                        viewModel.calculateMaterials()
-                        if (arguments.id != -1) {
-                            viewModel.insertHome(
-                                HouseEntity(
-                                    id = arguments.id,
-                                    parentID = arguments.parentID,
-                                    houseName = houseName.value,
-                                    date = currentDate,
-                                    totalRooms = rooms.value.size,
-                                    totalCement = totalCement.value,
-                                    totalCementWithBag = totalCementWithBag.value,
-                                    totalSand = totalSand.value,
-                                    totalCrushedStone = totalCrushedStone.value,
-                                    totalBrick = totalBrick.value
-                                )
+                    viewModel.calculateMaterials()
+                    if (arguments.id != -1) {
+                        viewModel.insertHome(
+                            HouseEntity(
+                                id = arguments.id,
+                                parentID = arguments.parentID,
+                                houseName = houseName.value,
+                                date = currentDate,
+                                totalRooms = rooms.value.size,
+                                totalCement = totalCement.value,
+                                totalCementWithBag = totalCementWithBag.value,
+                                totalSand = totalSand.value,
+                                totalCrushedStone = totalCrushedStone.value,
+                                totalBrick = totalBrick.value
                             )
-                        } else {
-                            viewModel.insertHome(
-                                HouseEntity(
-                                    parentID = parentID,
-                                    houseName = houseName.value,
-                                    date = currentDate,
-                                    totalRooms = rooms.value.size,
-                                    totalCement = totalCement.value,
-                                    totalCementWithBag = totalCementWithBag.value,
-                                    totalSand = totalSand.value,
-                                    totalCrushedStone = totalCrushedStone.value,
-                                    totalBrick = totalBrick.value
-                                )
+                        )
+                    } else {
+                        viewModel.insertHome(
+                            HouseEntity(
+                                parentID = parentID,
+                                houseName = houseName.value,
+                                date = currentDate,
+                                totalRooms = rooms.value.size,
+                                totalCement = totalCement.value,
+                                totalCementWithBag = totalCementWithBag.value,
+                                totalSand = totalSand.value,
+                                totalCrushedStone = totalCrushedStone.value,
+                                totalBrick = totalBrick.value
                             )
-                        }
+                        )
                     }
                     navController.popBackStack()
                 }
