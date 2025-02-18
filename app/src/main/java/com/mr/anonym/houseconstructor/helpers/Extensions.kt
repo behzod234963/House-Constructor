@@ -21,7 +21,7 @@ fun Char.charChecker(): Boolean {
 }
 
 fun String.stringChecker():Boolean{
-    val regexPattern = Regex("^[0-9]+\\.?[0-9]*$")
+    val regexPattern = Regex("^[0-9]+\\.?[0-9]*$") /* Regex pattern for numbers and dot */
     return if (regexPattern.matches(this)){
         true
     }else{
