@@ -32,6 +32,9 @@ class HouseRepository @Inject constructor(private val dao: ConstructorDao) {
     }
     fun getRooms() = dao.getRooms()
     suspend fun deleteRoom(room: RoomsEntity){ dao.deleteRoom(room) }
+    suspend fun deleteRoomByParentID(parentID: Int){
+        dao.deleteRoomByParentID(parentID)
+    }
     suspend fun deleteRooms(rooms:List<RoomsEntity>){
         dao.deleteRooms(rooms)
     }

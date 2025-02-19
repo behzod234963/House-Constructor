@@ -32,4 +32,7 @@ class HomeViewModel@Inject constructor(
     fun deleteHome(home:HouseEntity) = viewModelScope.launch (Dispatchers.IO){
         repository.deleteHome(home)
     }
+    fun deleteRoomByParentID(parentID:Int) = viewModelScope.launch (Dispatchers.IO){
+        repository.deleteRoomByParentID(parentID)
+    }
 }

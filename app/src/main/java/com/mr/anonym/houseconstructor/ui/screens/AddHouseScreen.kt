@@ -59,7 +59,6 @@ import com.mr.anonym.houseconstructor.data.model.RoomsEntity
 import com.mr.anonym.houseconstructor.helpers.AddHouseEvent
 import com.mr.anonym.houseconstructor.helpers.CalculateMaterials
 import com.mr.anonym.houseconstructor.helpers.roundTo
-import com.mr.anonym.houseconstructor.helpers.charChecker
 import com.mr.anonym.houseconstructor.helpers.stringChecker
 import com.mr.anonym.houseconstructor.navigation.NavArguments
 import com.mr.anonym.houseconstructor.ui.items.RoomItem
@@ -119,6 +118,7 @@ fun AddHouseScreen(
     val primaryColor = if (isSystemInDarkTheme()) Color.Black else Color.White
     val secondaryColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     val tertiaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray
+    val quaternaryColor = if(isSystemInDarkTheme()) Color.DarkGray else Color.White
 
     val scrollState = rememberScrollState()
     val progressButton = rememberLottieComposition(
@@ -570,7 +570,7 @@ fun AddHouseScreen(
             LazyColumn {
                 items(rooms.value) { room ->
                     RoomItem(
-                        primaryColor = primaryColor,
+                        primaryColor = quaternaryColor,
                         secondaryColor = secondaryColor,
                         roomName = room.roomName,
                         cement = room.cement,

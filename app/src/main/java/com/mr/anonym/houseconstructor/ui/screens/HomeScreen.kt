@@ -37,9 +37,10 @@ fun HomeScreen(
 
     val context = LocalContext.current
 
-    val primaryColor = if(isSystemInDarkTheme()) Color.Black else Color.White
+    val primaryColor = if (isSystemInDarkTheme()) Color.Black else Color.White
     val secondaryColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     val tertiaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray
+    val quaternaryColor = Color.Unspecified
 
     val houses = viewModel.houses
 
@@ -63,7 +64,7 @@ fun HomeScreen(
                 onClick = {
                     navController.navigate(Screens.AddHouseScreen.route + "/${-1}/${-1}")
                 },
-                elevation = FloatingActionButtonDefaults.elevation( 5.dp )
+                elevation = FloatingActionButtonDefaults.elevation(5.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -72,18 +73,21 @@ fun HomeScreen(
                 )
             }
         }
-    ) {paddingValues->
-        LazyColumn (
+    ) { paddingValues ->
+        LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
-        ){
-            items(houses.value){entity->
+        ) {
+            items(houses.value) { entity ->
                 HomeItem(
-                    primaryColor = primaryColor,
+                    primaryColor = quaternaryColor,
                     secondaryColor = secondaryColor,
                     tertiaryColor = tertiaryColor,
                     onClick = { navController.navigate(Screens.AddHouseScreen.route + "/${entity.id}/${entity.parentID}") },
-                    onDeleteClick = { viewModel.deleteHome(entity) },
+                    onDeleteClick = {
+                        viewModel.deleteHome(entity)
+                        viewModel.deleteRoomByParentID(entity.parentID)
+                    },
                     entity = entity
                 )
             }

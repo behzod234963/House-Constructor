@@ -39,6 +39,9 @@ interface ConstructorDao {
     @Delete
     suspend fun deleteRoom(room: RoomsEntity)
 
+    @Query("DELETE FROM rooms WHERE parentID=:parentID")
+    suspend fun deleteRoomByParentID( parentID: Int )
+
     @Delete
     suspend fun deleteRooms(rooms:List<RoomsEntity>)
 
