@@ -1,5 +1,6 @@
 package com.mr.anonym.houseconstructor.helpers
 
+import android.icu.text.DecimalFormat
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -7,6 +8,17 @@ fun Double.roundTo(n: Int): Double {
     val factor = 10.0.pow(n)
     return round(this * factor) / factor
 }
+fun String.moneySeparator(cost:Double):String{
+    val factory = DecimalFormat("#,###")
+    return factory.format(cost)
+}
+fun Double.moneyType():String = this.toString().moneySeparator(this)
+
+fun String.brickSeparator(brick:Int):String{
+    val factory = DecimalFormat("#,###")
+    return factory.format(brick)
+}
+fun Int.brickType():String = this.toString().brickSeparator(this)
 
 fun Char.charChecker(): Boolean {
     return if (

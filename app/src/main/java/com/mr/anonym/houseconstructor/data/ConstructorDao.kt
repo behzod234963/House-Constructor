@@ -33,8 +33,16 @@ interface ConstructorDao {
     @Query("SELECT * FROM house WHERE id=:id")
     fun getHouse(id: Int): Flow<HouseEntity>
 
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRoom(rooms: RoomsEntity)
+
+    @Query("UPDATE rooms SET cementCost=:cementCost WHERE id=:id")
+    suspend fun updateCementCost(id:Int,cementCost:Double)
+
+    @Query("UPDATE rooms SET brickCost=:brickCost WHERE id=:id")
+    suspend fun updateBrickCost(id:Int,brickCost:Double)
 
     @Delete
     suspend fun deleteRoom(room: RoomsEntity)

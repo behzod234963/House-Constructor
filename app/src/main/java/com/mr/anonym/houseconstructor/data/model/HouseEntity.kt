@@ -15,5 +15,6 @@ data class HouseEntity(
     val totalCementWithBag:Int,
     val totalSand:Double,
     val totalCrushedStone:Double,
-    val totalBrick:Int
+    val totalBrick:Int,
+    val totalCost:Double
 )

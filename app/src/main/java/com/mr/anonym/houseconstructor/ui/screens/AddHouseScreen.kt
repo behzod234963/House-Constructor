@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,15 +17,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -57,6 +62,7 @@ import com.mr.anonym.houseconstructor.R
 import com.mr.anonym.houseconstructor.data.model.HouseEntity
 import com.mr.anonym.houseconstructor.data.model.RoomsEntity
 import com.mr.anonym.houseconstructor.helpers.AddHouseEvent
+import com.mr.anonym.houseconstructor.helpers.CalculateCost
 import com.mr.anonym.houseconstructor.helpers.CalculateMaterials
 import com.mr.anonym.houseconstructor.helpers.roundTo
 import com.mr.anonym.houseconstructor.helpers.stringChecker
@@ -89,15 +95,16 @@ fun AddHouseScreen(
     val isLengthError = remember { mutableStateOf(false) }
     val isRoomProcess = remember { mutableStateOf(false) }
     val isConfirmed = remember { mutableStateOf(false) }
-    val isCancel = remember { mutableStateOf(false) }
-    val isSaveHome = remember { mutableStateOf(false) }
-    val isUpdate = remember { mutableStateOf(false) }
+    val isCostChange = remember { mutableStateOf(false) }
+    val isUpdate = remember { mutableStateOf( false ) }
 
     val houseName = viewModel.homeName
     val roomName = viewModel.roomName
     val length = viewModel.length
     val width = viewModel.width
     val height = viewModel.height
+    val cementCost = remember { mutableStateOf("") }
+    val brickCost = remember { mutableStateOf("") }
 
     val parentID = viewModel.parentID
     val currentRoomID = remember { mutableIntStateOf(-1) }
@@ -107,6 +114,8 @@ fun AddHouseScreen(
     val sand = remember { mutableDoubleStateOf(0.0) }
     val crushedStone = remember { mutableDoubleStateOf(0.0) }
     val brick = remember { mutableIntStateOf(0) }
+    val bricks = remember { mutableIntStateOf(0) }
+    val cements = remember { mutableIntStateOf(0) }
 
     val totalRooms = remember { mutableIntStateOf(0) }
     val totalCement = viewModel.totalCement
@@ -114,13 +123,15 @@ fun AddHouseScreen(
     val totalSand = viewModel.totalSand
     val totalCrushedStone = viewModel.totalCrushedStone
     val totalBrick = viewModel.totalBrick
+    val totalCementCost = remember { mutableDoubleStateOf(0.0) }
+    val totalBrickCost = remember { mutableDoubleStateOf(0.0) }
+    val totalCost = viewModel.totalCost
 
     val primaryColor = if (isSystemInDarkTheme()) Color.Black else Color.White
     val secondaryColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     val tertiaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray
-    val quaternaryColor = if(isSystemInDarkTheme()) Color.DarkGray else Color.White
+    val quaternaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.White
 
-    val scrollState = rememberScrollState()
     val progressButton = rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.anim_progress_button)
     )
@@ -231,9 +242,10 @@ fun AddHouseScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(45.dp),
+                        .height(45.dp)
+                        .clickable { isRoomProcess.value = !isRoomProcess.value },
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     IconButton(
                         onClick = { isRoomProcess.value = true }
@@ -248,10 +260,23 @@ fun AddHouseScreen(
                     }
                     Spacer(Modifier.width(5.dp))
                     Text(
+                        modifier = Modifier
+                            .clickable { isRoomProcess.value = !isRoomProcess.value },
                         text = "Добавить комнату",
                         color = secondaryColor,
                         fontSize = 16.sp
                     )
+                    IconButton(
+                        onClick = { isRoomProcess.value = !isRoomProcess.value }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(35.dp),
+                            imageVector = if (isRoomProcess.value) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
+                            tint = secondaryColor,
+                            contentDescription = "button add room"
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(10.dp))
@@ -477,8 +502,7 @@ fun AddHouseScreen(
                                         )
                                         cement.doubleValue = calculateMaterials.cement().roundTo(2)
                                         sand.doubleValue = calculateMaterials.sand().roundTo(2)
-                                        crushedStone.doubleValue =
-                                            calculateMaterials.crushedStone().roundTo(2)
+                                        crushedStone.doubleValue = calculateMaterials.crushedStone().roundTo(2)
                                         cementWithBag.intValue = calculateMaterials.cementWithBag()
                                         brick.intValue = calculateMaterials.brick()
                                     } else {
@@ -507,68 +531,90 @@ fun AddHouseScreen(
                     delay(3000)
                     isRoomProcess.value = false
                     isConfirmed.value = false
-                    if (!isUpdate.value) {
+                    if (!isUpdate.value){
                         if (arguments.id != -1) {
                             viewModel.insertRoom(
                                 RoomsEntity(
-                                    id = currentRoomID.intValue,
                                     parentID = arguments.parentID,
                                     roomName = roomName.value,
+                                    length = length.value.toDouble(),
                                     width = width.value.toDouble(),
                                     height = height.value.toDouble(),
-                                    length = length.value.toDouble(),
                                     cement = cement.doubleValue,
                                     cementWithBag = cementWithBag.intValue,
-                                    brick = brick.intValue,
                                     sand = sand.doubleValue,
-                                    crushedStone = crushedStone.doubleValue
+                                    crushedStone = crushedStone.doubleValue,
+                                    brick = brick.intValue,
+                                    cementCost = totalCementCost.doubleValue,
+                                    brickCost = totalBrickCost.doubleValue
                                 )
                             )
                             viewModel.onEvent(AddHouseEvent.ChangeWidth(""))
                             viewModel.onEvent(AddHouseEvent.ChangeHeight(""))
                             viewModel.onEvent(AddHouseEvent.ChangeLength(""))
                             viewModel.onEvent(AddHouseEvent.ChangeRoomName(""))
+                            viewModel.getRoomsByParentID(arguments.parentID)
+                            totalRooms.intValue++
                         } else {
                             viewModel.insertRoom(
                                 RoomsEntity(
                                     parentID = parentID,
                                     roomName = roomName.value,
+                                    length = length.value.toDouble(),
                                     width = width.value.toDouble(),
                                     height = height.value.toDouble(),
-                                    length = length.value.toDouble(),
                                     cement = cement.doubleValue,
                                     cementWithBag = cementWithBag.intValue,
-                                    brick = brick.intValue,
                                     sand = sand.doubleValue,
-                                    crushedStone = crushedStone.doubleValue
+                                    crushedStone = crushedStone.doubleValue,
+                                    brick = brick.intValue,
+                                    cementCost = totalCementCost.doubleValue,
+                                    brickCost = totalBrickCost.doubleValue
                                 )
                             )
+                            viewModel.onEvent(AddHouseEvent.ChangeWidth(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeHeight(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeLength(""))
+                            viewModel.onEvent(AddHouseEvent.ChangeRoomName(""))
+                            viewModel.getRoomsByParentID(parentID)
                             totalRooms.intValue++
                         }
-                    } else {
+                    }else{
                         viewModel.insertRoom(
                             RoomsEntity(
                                 id = currentRoomID.intValue,
                                 parentID = arguments.parentID,
                                 roomName = roomName.value,
+                                length = length.value.toDouble(),
                                 width = width.value.toDouble(),
                                 height = height.value.toDouble(),
-                                length = length.value.toDouble(),
                                 cement = cement.doubleValue,
                                 cementWithBag = cementWithBag.intValue,
-                                brick = brick.intValue,
                                 sand = sand.doubleValue,
-                                crushedStone = crushedStone.doubleValue
+                                crushedStone = crushedStone.doubleValue,
+                                brick = brick.intValue,
+                                cementCost = totalCementCost.doubleValue,
+                                brickCost = totalBrickCost.doubleValue
                             )
                         )
+                        viewModel.onEvent(AddHouseEvent.ChangeWidth(""))
+                        viewModel.onEvent(AddHouseEvent.ChangeHeight(""))
+                        viewModel.onEvent(AddHouseEvent.ChangeLength(""))
+                        viewModel.onEvent(AddHouseEvent.ChangeRoomName(""))
+                        viewModel.getRoomsByParentID(parentID)
                         isUpdate.value = false
                     }
                 }
             }
-            viewModel.getRoomsByParentID(parentID)
+//            viewModel.getRoomsByParentID(parentID)
             Spacer(Modifier.height(10.dp))
             LazyColumn {
                 items(rooms.value) { room ->
+                    if (!isCostChange.value){
+                        currentRoomID.intValue = room.id ?: -1
+                    }
+                    bricks.intValue = room.brick
+                    cements.intValue = room.cementWithBag
                     RoomItem(
                         primaryColor = quaternaryColor,
                         secondaryColor = secondaryColor,
@@ -581,6 +627,12 @@ fun AddHouseScreen(
                         length = room.length,
                         width = room.width,
                         height = room.height,
+                        cementCost = room.cementCost,
+                        brickCost = room.brickCost,
+                        onCostClick = {
+                            currentRoomID.intValue = room.id ?: -1
+                            isCostChange.value = true
+                        },
                         onEditClick = {
                             viewModel.onEvent(AddHouseEvent.ChangeRoomName(room.roomName))
                             viewModel.onEvent(AddHouseEvent.ChangeWidth(room.width.toString()))
@@ -609,6 +661,92 @@ fun AddHouseScreen(
             )
         }
     }
+    if (isCostChange.value) {
+        Box(Modifier.fillMaxSize()) {
+            OnCostContent(
+                secondaryColor = secondaryColor,
+                quaternaryColor = quaternaryColor,
+                cementCost = cementCost.value,
+                brickCost = brickCost.value,
+                confirmButton = {
+                    if (
+                        cementCost.value.isNotEmpty()
+                        && brickCost.value.isNotEmpty()
+                    ) {
+                        if (arguments.id == -1) {
+                            val calculateCost = CalculateCost(
+                                brick = brick.intValue,
+                                cementWithBag = cementWithBag.intValue
+                            )
+                            totalCementCost.doubleValue =
+                                calculateCost.cementCost(cementCost.value.toDouble())
+                            totalBrickCost.doubleValue =
+                                calculateCost.brickCost(brickCost.value.toDouble())
+                            viewModel.updateBrickCost(
+                                currentRoomID.intValue,
+                                totalBrickCost.doubleValue
+                            )
+                            viewModel.updateCementCost(
+                                currentRoomID.intValue,
+                                totalCementCost.doubleValue
+                            )
+                            viewModel.getRoomsByParentID(parentID)
+                            brickCost.value = ""
+                            cementCost.value = ""
+                            isCostChange.value = false
+                        } else {
+                            val calculateCost = CalculateCost(
+                                brick = bricks.intValue,
+                                cementWithBag = cements.intValue
+                            )
+                            totalCementCost.doubleValue =
+                                calculateCost.cementCost(cementCost.value.toDouble())
+                            totalBrickCost.doubleValue =
+                                calculateCost.brickCost(brickCost.value.toDouble())
+                            viewModel.updateBrickCost(
+                                currentRoomID.intValue,
+                                totalBrickCost.doubleValue
+                            )
+                            viewModel.updateCementCost(
+                                currentRoomID.intValue,
+                                totalCementCost.doubleValue
+                            )
+                            viewModel.getRoomsByParentID(arguments.parentID)
+                            totalCementCost.doubleValue = 0.0
+                            totalBrickCost.doubleValue = 0.0
+                            isCostChange.value = false
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Проверьте правильность запольнения полей",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                dismissButton = {
+                    cementCost.value = ""
+                    brickCost.value = ""
+                    totalCementCost.doubleValue = 0.0
+                    totalBrickCost.doubleValue = 0.0
+                    isCostChange.value = false
+                },
+                onDismissRequest = {
+                    cementCost.value = ""
+                    brickCost.value = ""
+                    totalCementCost.doubleValue = 0.0
+                    totalBrickCost.doubleValue = 0.0
+                    isCostChange.value = false
+                },
+                onCementCostChange = {
+                    cementCost.value = it
+                },
+                onBrickCostChange = {
+                    brickCost.value = it
+                }
+            )
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -626,6 +764,7 @@ fun AddHouseScreen(
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
                     val currentDate = dateFormat.format(Calendar.getInstance().time)
                     viewModel.calculateMaterials()
+                    viewModel.calculateCost()
                     if (arguments.id != -1) {
                         viewModel.insertHome(
                             HouseEntity(
@@ -638,7 +777,8 @@ fun AddHouseScreen(
                                 totalCementWithBag = totalCementWithBag.value,
                                 totalSand = totalSand.value,
                                 totalCrushedStone = totalCrushedStone.value,
-                                totalBrick = totalBrick.value
+                                totalBrick = totalBrick.value,
+                                totalCost = totalCost.value
                             )
                         )
                     } else {
@@ -652,7 +792,8 @@ fun AddHouseScreen(
                                 totalCementWithBag = totalCementWithBag.value,
                                 totalSand = totalSand.value,
                                 totalCrushedStone = totalCrushedStone.value,
-                                totalBrick = totalBrick.value
+                                totalBrick = totalBrick.value,
+                                totalCost = totalCost.value
                             )
                         )
                     }
@@ -667,4 +808,131 @@ fun AddHouseScreen(
             }
         }
     }
+}
+
+@Composable
+fun OnCostContent(
+    secondaryColor: Color,
+    quaternaryColor: Color,
+    cementCost: String,
+    brickCost: String,
+    confirmButton: () -> Unit,
+    dismissButton: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onCementCostChange: (String) -> Unit,
+    onBrickCostChange: (String) -> Unit,
+) {
+
+    val isCementCostError = remember { mutableStateOf(false) }
+    val isBrickCostError = remember { mutableStateOf(false) }
+
+    AlertDialog(
+        containerColor = quaternaryColor,
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            ) {
+
+//                    Cement cost field
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(if (!isCementCostError.value) 75.dp else 90.dp)
+                        .padding(start = 5.dp),
+                    textStyle = TextStyle(
+                        color = secondaryColor,
+                        fontSize = 18.sp
+                    ),
+                    isError = isCementCostError.value,
+                    singleLine = true,
+                    supportingText = {
+                        if (isCementCostError.value) {
+                            Text(
+                                text = "Пожалуйста введите цену"
+                            )
+                        } else {
+                            Text(
+                                text = "Цена за 1 мешок цемент"
+                            )
+                            isCementCostError.value = false
+                        }
+                    },
+                    shape = RoundedCornerShape(7.dp),
+                    value = cementCost,
+                    onValueChange = {
+                        onCementCostChange(it)
+                        isCementCostError.value = !it.stringChecker()
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Цена за 1 мешок цемент"
+                        )
+                    }
+                )
+//                Brick cost field
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(if (!isBrickCostError.value) 75.dp else 90.dp)
+                        .padding(start = 5.dp),
+                    textStyle = TextStyle(
+                        color = secondaryColor,
+                        fontSize = 18.sp
+                    ),
+                    isError = isBrickCostError.value,
+                    singleLine = true,
+                    supportingText = {
+                        if (isBrickCostError.value) {
+                            Text(
+                                text = "Пожалуйста введите цену"
+                            )
+                        } else {
+                            Text(
+                                text = "Цена за 1 шт кирпич"
+                            )
+                            isBrickCostError.value = false
+                        }
+                    },
+                    shape = RoundedCornerShape(7.dp),
+                    value = brickCost,
+                    onValueChange = {
+                        onBrickCostChange(it)
+                        isBrickCostError.value = !it.stringChecker()
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Цена за 1 шт кирпич"
+                        )
+                    }
+                )
+            }
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { confirmButton() }
+            ) {
+                Text(
+                    text = "Сохранить",
+                    color = Color.Green,
+                    fontSize = 16.sp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { dismissButton() }
+            ) {
+                Text(
+                    text = "Выйти",
+                    color = Color.Red,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    )
 }

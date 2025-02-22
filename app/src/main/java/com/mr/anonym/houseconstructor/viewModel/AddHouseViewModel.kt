@@ -56,6 +56,9 @@ class AddHouseViewModel @Inject constructor(
     private val _totalBrick = mutableIntStateOf(0)
     val totalBrick: State<Int> = _totalBrick
 
+    private val _totalCost = mutableDoubleStateOf(0.0)
+    val totalCost: State<Double> = _totalCost
+
     private val _homeModel = mutableStateOf(RoomState().homeModel)
     val homeModel: State<HouseEntity?> = _homeModel
 
@@ -117,8 +120,14 @@ class AddHouseViewModel @Inject constructor(
     fun insertRoom(room: RoomsEntity) = viewModelScope.launch {
         repository.insertRoom(room)
     }
+    fun updateCementCost(id:Int,cost:Double) = viewModelScope.launch (Dispatchers.IO){
+        repository.updateCementCost(id, cost)
+    }
+    fun updateBrickCost(id:Int,cost:Double) = viewModelScope.launch (Dispatchers.IO){
+        repository.updateBrickCost(id, cost)
+    }
 
-    fun deleteRoom(room: RoomsEntity) = viewModelScope.launch {
+    fun deleteRoom(room: RoomsEntity) = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteRoom(room)
     }
 
@@ -126,9 +135,9 @@ class AddHouseViewModel @Inject constructor(
         repository.deleteRooms(rooms)
     }
 
-    fun getRoomsByParentID(parentID: Int) = viewModelScope.launch {
+    fun getRoomsByParentID(parentID: Int) = viewModelScope.launch (Dispatchers.IO){
         repository.getRoomsByParentID(parentID).collect {
-            if (it.isNotEmpty()) _rooms.value = it
+            _rooms.value = it
         }
     }
 
@@ -144,6 +153,11 @@ class AddHouseViewModel @Inject constructor(
                 room.sand else _totalSand.doubleValue += room.sand
             if (room.crushedStone <= 0.0) _totalCrushedStone.doubleValue =
                 room.crushedStone else _totalCrushedStone.doubleValue += room.crushedStone
+        }
+    }
+    fun calculateCost() = viewModelScope.launch {
+        _rooms.value.forEach { room ->
+            _totalCost.doubleValue += room.cementCost + room.brickCost
         }
     }
 }

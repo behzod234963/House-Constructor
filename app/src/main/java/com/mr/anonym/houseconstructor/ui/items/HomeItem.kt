@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mr.anonym.houseconstructor.data.model.HouseEntity
+import com.mr.anonym.houseconstructor.helpers.brickType
+import com.mr.anonym.houseconstructor.helpers.moneyType
 
 @Composable
 fun HomeItem(
@@ -87,22 +89,27 @@ fun HomeItem(
                 fontSize = 17.sp
             )
             Text(
-                text = "- ${entity.totalCement} м³ цемент",
+                text = "≈ ${entity.totalCement} м³ цемент",
                 color = secondaryColor,
                 fontSize = 17.sp
             )
             Text(
-                text = "- ${entity.totalCementWithBag} мешок цемента",
+                text = "≈ ${entity.totalCementWithBag} мешок цемента",
                 color = secondaryColor,
                 fontSize = 17.sp
             )
             Text(
-                text = "- ${entity.totalSand} м³ песок",
+                text = "≈ ${entity.totalSand} м³ песок",
                 color = secondaryColor,
                 fontSize = 17.sp
             )
             Text(
-                text = "- ${entity.totalCrushedStone} м³ щебень",
+                text = "≈ ${entity.totalCrushedStone} м³ щебень",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "≈ ${entity.totalBrick.brickType()} шт кирпич",
                 color = secondaryColor,
                 fontSize = 17.sp
             )
@@ -113,9 +120,9 @@ fun HomeItem(
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Text(
-                    text = "- ${entity.totalBrick} шт кирпич",
+                    text = "≈ ${entity.totalCost.moneyType()} UZS",
                     color = secondaryColor,
-                    fontSize = 17.sp
+                    fontSize = 20.sp
                 )
                 IconButton(
                     onClick = { onDeleteClick() }

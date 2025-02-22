@@ -46,7 +46,7 @@ class CalculateMaterials(
     fun brick(): Int {
         val lengthVolume = height * length
         val widthVolume = height * width
-        val result = lengthVolume * widthVolume / brickVolume.times(1.5)
+        val result = lengthVolume * widthVolume / brickVolume.times(1.5) + 100
 
         return result.toInt()
     }

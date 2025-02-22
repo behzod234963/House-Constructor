@@ -24,9 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mr.anonym.houseconstructor.R
+import com.mr.anonym.houseconstructor.helpers.brickType
+import com.mr.anonym.houseconstructor.helpers.moneyType
 
 @Composable
 fun RoomItem(
@@ -34,13 +38,16 @@ fun RoomItem(
     secondaryColor: Color,
     roomName: String,
     cement: Double,
-    cementWithBag:Int,
-    sand:Double,
-    crushedStone:Double,
+    cementWithBag: Int,
+    sand: Double,
+    crushedStone: Double,
     brick: Int,
     length: Double,
     width: Double,
-    height:Double,
+    height: Double,
+    cementCost: Double,
+    brickCost: Double,
+    onCostClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -60,19 +67,29 @@ fun RoomItem(
                 .padding(10.dp)
         ) {
 
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 Text(
                     text = roomName,
                     color = secondaryColor,
                     fontSize = 22.sp
                 )
                 Row {
-                    //            Edit room button
+//                    add edit cost button
+                    IconButton(
+                        onClick = { onCostClick() }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_cost),
+                            tint = secondaryColor,
+                            contentDescription = "button edit room"
+                        )
+                    }
+//                    Edit room button
                     IconButton(
                         onClick = { onEditClick() }
                     ) {
@@ -109,71 +126,44 @@ fun RoomItem(
                 color = secondaryColor,
                 fontSize = 22.sp
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(vertical = 10.dp)
-            ) {
-
-//                Width
-                VerticalDivider(
-                    modifier = Modifier
-                        .height(height = width.toInt().times(20).dp),
-                    thickness = 4.dp,
-                    color = secondaryColor
-                )
-//                length
-                Column {
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .width(width = length.toInt().times(20).dp),
-                        thickness = 4.dp,
-                        color = secondaryColor
-                    )
-                    Spacer(Modifier.height(width.toInt().times(18.4).dp))
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .width(width = length.toInt().times(20).dp),
-                        thickness = 4.dp,
-                        color = secondaryColor
-                    )
-                }
-//               Width
-                VerticalDivider(
-                    modifier = Modifier
-                        .height(height = width.toInt().times(20).dp),
-                    thickness = 4.dp,
-                    color = secondaryColor
-                )
-            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), thickness = 2.dp, color = secondaryColor)
             Text(
                 text = "Необходимые материалы :",
                 color = secondaryColor,
                 fontSize = 20.sp
             )
             Text(
-                text = "- цемент = $cement м³",
+                text = "- цемент ≈ $cement м³",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "≈ $cementWithBag мешок цемента",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "≈ $sand м³ песок",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "≈ $crushedStone м³ щебень",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "≈ кирпич = ${brick.brickType()} шт",
+                color = secondaryColor,
+                fontSize = 17.sp
+            )
+            Text(
+                text = "- цемент ≈ ${cementCost.moneyType()} UZS",
                 color = secondaryColor,
                 fontSize = 20.sp
             )
             Text(
-                text = "- $cementWithBag мешок цемента",
-                color = secondaryColor,
-                fontSize = 17.sp
-            )
-            Text(
-                text = "- $sand м³ песок",
-                color = secondaryColor,
-                fontSize = 17.sp
-            )
-            Text(
-                text = "- $crushedStone м³ щебень",
-                color = secondaryColor,
-                fontSize = 17.sp
-            )
-            Text(
-                text = "- кирпич = $brick шт",
+                text = "≈ кирпич = ${brickCost.moneyType()} UZS",
                 color = secondaryColor,
                 fontSize = 20.sp
             )
@@ -194,9 +184,13 @@ private fun PreviewRoomItem() {
         sand = 5.0,
         crushedStone = 5.0,
         brick = 1000,
-        length = 10.0,
+        length = 5.0,
         width = 5.0,
-        height = 4.0,
+        height = 10.0,
+        cementCost = 50000.0,
+        brickCost = 100.0,
+        onCostClick = {},
         onEditClick = {},
-        onDeleteClick = {})
+        onDeleteClick = {}
+    )
 }

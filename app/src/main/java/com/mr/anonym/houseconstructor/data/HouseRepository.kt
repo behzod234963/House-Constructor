@@ -15,22 +15,17 @@ class HouseRepository @Inject constructor(private val dao: ConstructorDao) {
     suspend fun deleteHome(home:HouseEntity){
         dao.deleteHome(home)
     }
-
-    suspend fun updateTotalCement(id:Int,totalCement:Double){
-        dao.updateTotalCement(id, totalCement)
-    }
-    suspend fun updateTotalBrick(id:Int, totalBrick:Double){
-        dao.updateTotalBrick(id, totalBrick)
-    }
-    suspend fun updateTotalRooms(id:Int, totalRooms:Int){
-        dao.updateTotalRooms(id, totalRooms)
-    }
     fun getAllHouse() = dao.getAllHouse()
     fun getHouse(id:Int) = dao.getHouse(id)
     suspend fun insertRoom(room:RoomsEntity){
         dao.insertRoom(room)
     }
-    fun getRooms() = dao.getRooms()
+    suspend fun updateCementCost(id:Int,cementCost:Double){
+        dao.updateCementCost(id, cementCost)
+    }
+    suspend fun updateBrickCost(id:Int,brickCost:Double){
+        dao.updateBrickCost(id, brickCost)
+    }
     suspend fun deleteRoom(room: RoomsEntity){ dao.deleteRoom(room) }
     suspend fun deleteRoomByParentID(parentID: Int){
         dao.deleteRoomByParentID(parentID)
@@ -39,5 +34,4 @@ class HouseRepository @Inject constructor(private val dao: ConstructorDao) {
         dao.deleteRooms(rooms)
     }
     fun getRoomsByParentID(parentID:Int) = dao.getRoomsByParentID(parentID)
-    fun getRoom(id: Int) = dao.getRoom(id)
 }

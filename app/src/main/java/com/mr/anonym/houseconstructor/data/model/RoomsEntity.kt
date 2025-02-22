@@ -16,5 +16,7 @@ data class RoomsEntity(
     val cementWithBag:Int,
     val sand:Double,
     val crushedStone:Double,
-    val brick:Int
+    val brick:Int,
+    val cementCost:Double,
+    val brickCost: Double
 )
