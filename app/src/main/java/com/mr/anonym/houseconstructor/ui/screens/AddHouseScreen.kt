@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
@@ -40,17 +42,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,6 +66,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mr.anonym.houseconstructor.R
+import com.mr.anonym.houseconstructor.data.model.DataStoreInstance
 import com.mr.anonym.houseconstructor.data.model.HouseEntity
 import com.mr.anonym.houseconstructor.data.model.RoomsEntity
 import com.mr.anonym.houseconstructor.helpers.AddHouseEvent
@@ -89,6 +97,8 @@ fun AddHouseScreen(
 
     val context = LocalContext.current
 
+    val dataStore = DataStoreInstance(context)
+
     val isError = remember { mutableStateOf(false) }
     val isWidthError = remember { mutableStateOf(false) }
     val isHeightError = remember { mutableStateOf(false) }
@@ -103,6 +113,9 @@ fun AddHouseScreen(
     val length = viewModel.length
     val width = viewModel.width
     val height = viewModel.height
+
+    val generalCementCost = dataStore.getCementCost().collectAsState(0.0)
+    val generalBrickCost = dataStore.getBrickCost().collectAsState(0.0)
     val cementCost = remember { mutableStateOf("") }
     val brickCost = remember { mutableStateOf("") }
 
@@ -131,6 +144,18 @@ fun AddHouseScreen(
     val secondaryColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     val tertiaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray
     val quaternaryColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.White
+
+    val focusManager = LocalFocusManager.current
+
+    val keyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Number,
+        imeAction = ImeAction.Next,
+    )
+    val keyboardActions = KeyboardActions(
+        onNext = {
+            focusManager.moveFocus(FocusDirection.Next)
+        }
+    )
 
     val progressButton = rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.anim_progress_button)
@@ -300,6 +325,7 @@ fun AddHouseScreen(
                                 text = "необязательное поле"
                             )
                         },
+                        keyboardActions = keyboardActions,
                         trailingIcon = {
                             IconButton(
                                 onClick = {
@@ -341,6 +367,8 @@ fun AddHouseScreen(
                                 color = secondaryColor,
                                 fontSize = 18.sp
                             ),
+                            keyboardActions = keyboardActions,
+                            keyboardOptions = keyboardOptions,
                             trailingIcon = {
                                 IconButton(
                                     onClick = { viewModel.onEvent(AddHouseEvent.ChangeWidth("")) }
@@ -388,6 +416,8 @@ fun AddHouseScreen(
                                 color = secondaryColor,
                                 fontSize = 18.sp
                             ),
+                            keyboardActions = keyboardActions,
+                            keyboardOptions = keyboardOptions,
                             trailingIcon = {
                                 IconButton(
                                     onClick = { viewModel.onEvent(AddHouseEvent.ChangeLength("")) }
@@ -442,6 +472,8 @@ fun AddHouseScreen(
                                 color = secondaryColor,
                                 fontSize = 18.sp
                             ),
+                            keyboardActions = keyboardActions,
+                            keyboardOptions = keyboardOptions,
                             trailingIcon = {
                                 IconButton(
                                     onClick = { viewModel.onEvent(AddHouseEvent.ChangeHeight("")) }
@@ -531,6 +563,12 @@ fun AddHouseScreen(
                     delay(3000)
                     isRoomProcess.value = false
                     isConfirmed.value = false
+                    val calculateCost = CalculateCost(
+                        cementWithBag = cementWithBag.intValue,
+                        brick = brick.intValue
+                    )
+                    totalCementCost.doubleValue = calculateCost.cementCost(generalCementCost.value)
+                    totalBrickCost.doubleValue = calculateCost.brickCost(generalBrickCost.value)
                     if (!isUpdate.value){
                         if (arguments.id != -1) {
                             viewModel.insertRoom(
@@ -606,7 +644,6 @@ fun AddHouseScreen(
                     }
                 }
             }
-//            viewModel.getRoomsByParentID(parentID)
             Spacer(Modifier.height(10.dp))
             LazyColumn {
                 items(rooms.value) { room ->
@@ -668,6 +705,8 @@ fun AddHouseScreen(
                 quaternaryColor = quaternaryColor,
                 cementCost = cementCost.value,
                 brickCost = brickCost.value,
+                keyboardActions = keyboardActions,
+                keyboardOptions = keyboardOptions,
                 confirmButton = {
                     if (
                         cementCost.value.isNotEmpty()
@@ -693,6 +732,8 @@ fun AddHouseScreen(
                             viewModel.getRoomsByParentID(parentID)
                             brickCost.value = ""
                             cementCost.value = ""
+                            totalCementCost.doubleValue = 0.0
+                            totalBrickCost.doubleValue = 0.0
                             isCostChange.value = false
                         } else {
                             val calculateCost = CalculateCost(
@@ -816,6 +857,8 @@ fun OnCostContent(
     quaternaryColor: Color,
     cementCost: String,
     brickCost: String,
+    keyboardActions:KeyboardActions,
+    keyboardOptions: KeyboardOptions,
     confirmButton: () -> Unit,
     dismissButton: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -834,7 +877,6 @@ fun OnCostContent(
                     .fillMaxWidth()
                     .wrapContentHeight()
             ) {
-
 //                    Cement cost field
                 OutlinedTextField(
                     modifier = Modifier
@@ -845,6 +887,8 @@ fun OnCostContent(
                         color = secondaryColor,
                         fontSize = 18.sp
                     ),
+                    keyboardActions = keyboardActions,
+                    keyboardOptions = keyboardOptions,
                     isError = isCementCostError.value,
                     singleLine = true,
                     supportingText = {
@@ -881,6 +925,8 @@ fun OnCostContent(
                         color = secondaryColor,
                         fontSize = 18.sp
                     ),
+                    keyboardActions = keyboardActions,
+                    keyboardOptions = keyboardOptions,
                     isError = isBrickCostError.value,
                     singleLine = true,
                     supportingText = {

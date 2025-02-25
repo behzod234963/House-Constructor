@@ -1,10 +1,12 @@
 package com.mr.anonym.houseconstructor.di
 
 import android.content.Context
+import android.provider.ContactsContract.Data
 import androidx.room.Room
 import com.mr.anonym.houseconstructor.data.ConstructorDao
 import com.mr.anonym.houseconstructor.data.HouseRepository
 import com.mr.anonym.houseconstructor.data.RoomInstance
+import com.mr.anonym.houseconstructor.data.model.DataStoreInstance
 import com.mr.anonym.houseconstructor.ui.utils.DB_NAME
 import dagger.Module
 import dagger.Provides
@@ -32,4 +34,7 @@ class AppModule {
     @Provides
     @Singleton
     fun provideRepository(dao: ConstructorDao):HouseRepository = HouseRepository(dao)
+    @Provides
+    @Singleton
+    fun provideDataStore(@ApplicationContext context: Context):DataStoreInstance = DataStoreInstance(context)
 }
